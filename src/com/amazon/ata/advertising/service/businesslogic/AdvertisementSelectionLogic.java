@@ -26,7 +26,6 @@ public class AdvertisementSelectionLogic {
 
     private final ReadableDao<String, List<AdvertisementContent>> contentDao;
     private final ReadableDao<String, List<TargetingGroup>> targetingGroupDao;
-  //  private final TargetingEvaluator targetingEvaluator;
     private Random random = new Random();
 
     /**
@@ -39,7 +38,6 @@ public class AdvertisementSelectionLogic {
                                        ReadableDao<String, List<TargetingGroup>> targetingGroupDao) {
         this.contentDao = contentDao;
         this.targetingGroupDao = targetingGroupDao;
-   //     this.targetingEvaluator = targetingEvaluator;
     }
 
     /**
@@ -68,17 +66,6 @@ public class AdvertisementSelectionLogic {
             LOG.warn("MarketplaceId cannot be null or empty. Returning empty ad.");
         } else {
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
-
-
-//            List<TargetingGroup> targetResults =  contents.stream()
-//                    .map(content -> targetingGroupDao.get(content.getContentId()))
-//                  .flatMap(Collection::stream)
-//                  .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue())
-//                  .collect(Collectors.toList());
-
-
-            //for each content get list of targeting groups
-            //for each targeting group evaluate if it is true
 
             final List<AdvertisementContent> eligibleContents;
 
