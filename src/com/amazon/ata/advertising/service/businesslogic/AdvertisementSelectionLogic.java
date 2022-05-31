@@ -13,8 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -73,25 +72,54 @@ public class AdvertisementSelectionLogic {
                     .filter(content -> this.contentFilter(content, targetingEvaluator))
                     .collect(Collectors.toList());
 
-//            final List<AdvertisementContent> eligibleContents = new ArrayList<>();
-//            for(AdvertisementContent content : contents) {
-//                List<TargetingGroup>  targetingGroups = targetingGroupDao.get(content.getContentId());
-//                for(TargetingGroup targetingGroup : targetingGroups) {
-//                    if(targetingEvaluator.evaluate(targetingGroup).isTrue()) {
-//                        //add content to eligible list
-//                        eligibleContents.add(content);
-//                    }
-//                }
-//            }
-//
+            TreeMap<Double, AdvertisementContent> adsSortedByCTR;
+            adsSortedByCTR = new TreeMap<>(Comparator.reverseOrder());
+
+            populateTreeByCTR(eligibleContents, adsSortedByCTR);
+
+
+
+
+
            if (CollectionUtils.isNotEmpty(eligibleContents)) {
-                AdvertisementContent randomAdvertisementContent = eligibleContents.get(random.nextInt(eligibleContents.size()));
-                generatedAdvertisement = new GeneratedAdvertisement(randomAdvertisementContent);
+               AdvertisementContent advertisementContentWithHighestCTR = adsSortedByCTR.firstEntry().getValue();
+               generatedAdvertisement = new GeneratedAdvertisement(advertisementContentWithHighestCTR);
+
             }
 
         }
 
         return generatedAdvertisement;
+    }
+
+    private void populateTreeByCTR(List<AdvertisementContent> eligibleContents, TreeMap<Double, AdvertisementContent> tree) {
+//        for(AdvertisementContent eligibleAd : eligibleContents) {
+//            List<TargetingGroup> targetingGroups = targetingGroupDao.get(eligibleAd.getContentId());
+//            double highestClickThroughRate = Integer.MIN_VALUE;
+//            //for each targeting group, if its click through rate is higher than the current highest, make it the new highest CTR
+//            for(TargetingGroup targetingGroup : targetingGroups) {
+//                double clickThroughRate = targetingGroup.getClickThroughRate();
+//                highestClickThroughRate = Math.max(clickThroughRate, highestClickThroughRate);
+//            }
+//            tree.put(highestClickThroughRate, eligibleAd);
+//        }
+
+       eligibleContents.stream().forEach(content -> getHighestCTR(content, tree));
+
+    }
+
+    private void getHighestCTR(AdvertisementContent content, TreeMap<Double, AdvertisementContent> tree) {
+       Optional<Double> highestCTR = targetingGroupDao.get(content.getContentId())
+                .stream()
+                .map(targetingGroup -> targetingGroup.getClickThroughRate())
+                .reduce((t1, t2) ->
+                    t1 > t2? t1:t2
+    );
+       if(highestCTR.isPresent()) {
+           tree.put(highestCTR.get(), content);
+       }
+
+       tree.put(0.0, content);
     }
 
 
